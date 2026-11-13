@@ -1,0 +1,267 @@
+/* ===== Header animations — layered on top of your existing theme =====
+   Uses only currentColor + optional vars, so your palette is untouched.
+   Import AFTER your global stylesheet so these rules win. */
+
+.site-header {
+  transition: padding 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+}
+.site-header[data-scrolled='true'] {
+  padding-block: 0.5rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 10px 30px -18px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Brand mark: seal draws itself + rotating type ring ---------- */
+.brand-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+}
+.brand-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: ring-spin 18s linear infinite;
+}
+.brand-ring text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  fill: currentColor;
+  opacity: 0.55;
+}
+.brand:hover .brand-ring {
+  animation-duration: 5s;
+}
+.brand-seal {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.brand:hover .brand-seal {
+  transform: rotateY(360deg);
+}
+.seal-circle,
+.seal-check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 0.9s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+.seal-check {
+  animation-delay: 0.7s;
+  animation-duration: 0.5s;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- 3D wordmark ---------- */
+.brand-text {
+  display: grid;
+  gap: 2px;
+  perspective: 600px;
+}
+.wordmark {
+  --rx: 0deg;
+  --ry: 0deg;
+  display: inline-flex;
+  font-size: 1.15rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.25s ease-out;
+  will-change: transform;
+}
+
+/* Each letter is a small cube that rolls forward to show its back face */
+.letter {
+  position: relative;
+  display: inline-block;
+  height: 1em;
+  transform-style: preserve-3d;
+  transform: translateZ(-0.5em) rotateX(0deg);
+  transition: transform 0.6s cubic-bezier(0.3, 1.4, 0.4, 1);
+  transition-delay: calc(var(--i) * 25ms);
+  /* intro: letters tumble in one after another */
+  animation: letter-in 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+  animation-delay: calc(0.15s + var(--i) * 70ms);
+}
+.face {
+  display: block;
+  backface-visibility: hidden;
+}
+.face.front {
+  transform: translateZ(0.5em);
+}
+.face.back {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(-90deg) translateZ(0.5em);
+  /* swap in an accent if you have one, e.g. var(--accent) */
+  color: var(--accent, currentColor);
+  opacity: 0.9;
+}
+.brand:hover .letter {
+  transform: translateZ(-0.5em) rotateX(90deg);
+}
+
+/* idle wave every few seconds */
+.wordmark[data-wave='true'] .letter {
+  animation: letter-wave 0.9s ease-in-out;
+  animation-delay: calc(var(--i) * 60ms);
+}
+
+@keyframes letter-in {
+  from {
+    transform: translateZ(-0.5em) rotateX(-90deg) translateY(0.4em);
+    opacity: 0;
+  }
+  to {
+    transform: translateZ(-0.5em) rotateX(0deg) translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes letter-wave {
+  0%, 100% { transform: translateZ(-0.5em) rotateX(0deg); }
+  50% { transform: translateZ(-0.5em) rotateX(90deg); }
+}
+
+.brand small {
+  letter-spacing: 0.32em;
+  opacity: 0.6;
+  animation: fade-up 0.7s ease 0.9s backwards;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+/* ---------- Nav: text rolls up on hover, underline sweeps ---------- */
+.desktop-nav a {
+  position: relative;
+  padding-block: 0.35rem;
+}
+.desktop-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.desktop-nav a:hover::after,
+.desktop-nav a:focus-visible::after,
+.desktop-nav a[aria-current='page']::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.roll {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.3;
+  vertical-align: bottom;
+}
+.roll > span,
+.roll::after {
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.roll::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 100%;
+}
+a:hover > .roll > span,
+a:focus-visible > .roll > span {
+  transform: translateY(-100%);
+}
+a:hover > .roll::after,
+a:focus-visible > .roll::after {
+  transform: translateY(-100%);
+}
+
+/* ---------- CTA ---------- */
+.header-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.header-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.header-cta:hover::before {
+  transform: translateX(120%);
+  transition: transform 0.8s ease;
+}
+.cta-arrow {
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+.header-cta:hover .cta-arrow {
+  transform: translateX(5px);
+}
+
+/* ---------- Mobile menu ---------- */
+.mobile-nav .bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.35s ease, opacity 0.2s ease;
+}
+.mobile-nav[open] .b1 { transform: translateY(5px) rotate(45deg); }
+.mobile-nav[open] .b2 { opacity: 0; }
+.mobile-nav[open] .b3 { transform: translateY(-5px) rotate(-45deg); }
+
+.mobile-nav[open] nav a {
+  animation: menu-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i) * 55ms);
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateX(-14px) rotateY(-30deg); }
+}
+
+/* ---------- Accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .brand-ring,
+  .letter,
+  .seal-circle,
+  .seal-check,
+  .brand small,
+  .mobile-nav[open] nav a {
+    animation: none !important;
+  }
+  .seal-circle,
+  .seal-check { stroke-dashoffset: 0; }
+  .wordmark,
+  .brand-seal,
+  .brand:hover .letter,
+  .brand:hover .brand-seal {
+    transform: none !important;
+    transition: none !important;
+  }
+  .letter { transform: none; }
+  .face.back { display: none; }
+}
+
+/* Small screens: shrink the ring so the header stays compact */
+@media (max-width: 640px) {
+  .brand-mark { width: 40px; height: 40px; }
+  .wordmark { font-size: 1rem; }
+}
